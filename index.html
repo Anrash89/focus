@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Magic Lessons — Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg1:#0a0a1a;--bg2:#111133;--accent:#8a5cf6;--accent2:#19c7ff;--text:#fffefc;--muted:#c9c5ff;
+      --card:rgba(255,255,255,.08);--card2:rgba(255,255,255,.12);--radius:20px;--shadow:0 14px 40px rgba(0,0,0,.45);
+      --kid: 18px/1.45 "Comic Sans MS", "Comic Neue", system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font:var(--kid);color:var(--text);background:
+      radial-gradient(1200px 800px at 70% -10%, rgba(137,92,246,.25), transparent 60%),
+      radial-gradient(900px 600px at -20% 110%, rgba(25,199,255,.18), transparent 55%),
+      linear-gradient(180deg,var(--bg1),var(--bg2));overflow-x:hidden}
+
+    /* Magic sparkles */
+    .sparkles{position:fixed;inset:0;pointer-events:none;z-index:0}
+    .sparkles i{position:absolute;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,255,255,.2));
+      filter:drop-shadow(0 0 8px #fff);animation:float 14s linear infinite;opacity:.85}
+    @keyframes float{from{transform:translateY(0)}to{transform:translateY(-120vh)}}
+
+    header{position:sticky;top:0;z-index:5;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+      background:linear-gradient(180deg,rgba(10,10,26,.75),rgba(10,10,26,.25));border-bottom:1px solid #ffffff15}
+    .wrap{max-width:1100px;margin:0 auto;padding:14px 16px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+      background:conic-gradient(from 200deg,var(--accent),var(--accent2));box-shadow:0 0 22px #8a5cf660, inset 0 0 0 2px #ffffff30}
+    .logo:after{content:"✨";font-size:20px;filter:drop-shadow(0 0 6px #fff)}
+    .title{font-weight:800;letter-spacing:.3px}
+    .subtitle{color:var(--muted);font-size:14px}
+
+    main{position:relative;z-index:1}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:.2s ease;}
+    .card:hover{transform:translateY(-3px);background:var(--card2)}
+    .media{position:relative;aspect-ratio:16/10;overflow:hidden}
+    .media img{width:100%;height:100%;object-fit:cover;display:block}
+    .chip{position:absolute;left:10px;top:10px;font-size:12px;padding:6px 8px;border-radius:999px;background:rgba(0,0,0,.6);border:1px solid #ffffff22}
+    .content{padding:12px 12px 14px}
+    .content h3{margin:0 0 6px;font-size:17px}
+    .content p{margin:0;color:var(--muted);font-size:14px}
+
+    .toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:16px 0 12px}
+    .controls{display:flex;gap:8px;align-items:center}
+    .btn{appearance:none;border:1px solid #ffffff25;background:linear-gradient(180deg,#ffffff12,#00000010);color:var(--text);
+      padding:9px 12px;border-radius:14px;cursor:pointer;font-weight:800;font-size:15px;box-shadow:var(--shadow)}
+    .btn:hover{transform:translateY(-1px);border-color:#ffffff35}
+    .btn.accent{border-color:transparent;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#06111e}
+    .hidden{display:none!important}
+    .view-title{font-size:20px;font-weight:900;margin:10px 0}
+
+    /* Lesson detail */
+    .detail{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .detail .banner{aspect-ratio:16/9;background:#000 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23bbb" font-family="Arial" font-size="28">Превью появится позже</text></svg>') center/contain no-repeat}
+    .detail .body{padding:12px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+
+    .fade-enter{opacity:0;transform:translateY(6px)}
+    .fade-enter-active{opacity:1;transform:translateY(0);transition:opacity .25s ease, transform .25s ease}
+
+    @media (max-width:560px){
+      .grid{grid-template-columns:repeat(2,1fr)}
+      .detail .body{grid-template-columns:1fr}
+    }
+    @media (prefers-reduced-motion:reduce){.card:hover{transform:none}.sparkles{display:none}}
+  </style>
+</head>
+<body>
+  <div class="sparkles" id="sparkles"></div>
+  <header>
+    <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">Magic Lessons</div>
+          <div class="subtitle">Наборы фокусов • Мини-приложение Telegram</div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn" id="btnBack" aria-label="Назад" hidden>← Назад</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- View: Sets -->
+    <section id="view-sets" aria-label="Выбор набора">
+      <div class="view-title">Выберите набор</div>
+      <div class="grid" id="setsGrid"></div>
+    </section>
+
+    <!-- View: Lessons -->
+    <section id="view-lessons" class="hidden" aria-label="Уроки набора">
+      <div class="toolbar">
+        <div class="controls">
+          <button class="btn" id="backToSets">← Ко всем наборам</button>
+          <div class="view-title" id="lessonsTitle">Набор</div>
+        </div>
+      </div>
+      <div class="grid" id="lessonsGrid"></div>
+    </section>
+
+    <!-- View: Lesson Detail (no web player; open in Telegram) -->
+    <section id="view-detail" class="hidden" aria-label="Описание урока">
+      <div class="toolbar">
+        <div class="controls">
+          <button class="btn" id="backToLessons">← К урокам</button>
+          <div class="view-title" id="detailSet">Урок</div>
+        </div>
+      </div>
+      <article class="detail">
+        <div class="banner" id="detailBanner" role="img" aria-label="Превью урока"></div>
+        <div class="body">
+          <div>
+            <h3 id="detailTitle" style="margin:0 0 6px">Название урока</h3>
+            <p id="detailAbout" style="margin:0;color:var(--muted);font-size:14px">Описание появится позже.</p>
+          </div>
+          <div class="controls">
+            <button class="btn accent" id="watchInTelegram">▶️ Смотреть в Telegram</button>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    // Telegram WebApp init
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    if (tg) { tg.ready(); try{tg.expand();}catch(e){} tg.BackButton.onClick(()=>navigateBack()); }
+
+    // Data
+    const SETS = [
+      {
+        id:'kit-75-lfrm',
+        name:'75 ЛФРМ — Большой набор',
+        color:'#b388ff',
+        cover:'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop',
+        lessons:[
+          'Фокус с волшебной палочкой и горшочком',
+          'Фокус с волшебной палочкой и сердечком №1',
+          'Фокус с волшебной палочкой №1',
+          'Фокус с волшебной палочкой и сердечком №2',
+          'Фокус с волшебной палочкой №2',
+          'Фокус с волшебной палочкой №3',
+          'Фокус с сердечками №1',
+          'Фокус с башенкой с шариком',
+          'Фокус с разделителем верёвки',
+          'Фокус с верёвкой №1',
+          'Фокус с разноцветными платками',
+          'Фокус с платком и напальчником',
+          'Фокус с сердечками №2',
+          'Фокус с сердечками №3',
+          'Фокус с сердечками №4',
+          'Фокус с сердечками №5',
+          'Фокус с числовыми картами',
+          'Фокус с баночкой с кубиками',
+          'Фокус с игральным кубиком',
+          'Фокус с двойными картами',
+          'Фокус с картой со створкой',
+          'Фокус со сложенной купюрой',
+          'Фокус с картой и купюрой',
+          'Фокус с купюрой',
+          'Фокус с купюрой со скрепками',
+          'Фокус со скрепками',
+          'Фокус со стаканами и шариками',
+          'Фокус с кольцом и цепочкой',
+          'Фокус с монеткой №1',
+          'Фокус с резинкой и скрепкой №1',
+          'Фокус с резинкой и скрепкой №2',
+          'Фокус с резинками №1',
+          'Фокус с резинками №2',
+          'Фокус с резинками и купюрой',
+          'Фокус с резинкой и купюрой',
+          'Фокус с резинкой',
+          'Фокус с резинками №3',
+          'Фокус с резинками №4',
+          'Фокус с резинками №5',
+          'Фокус с картой с леской и спичкой',
+          'Фокус с верёвкой и спичечным коробком',
+          'Фокус со спичечным коробком №1',
+          'Три загадки со спичками',
+          'Фокус со спичкой №1',
+          'Фокус со спичкой №2',
+          'Фокус со спичечным коробком №2',
+          'Фокус со спичечным коробком и воздушным шариком',
+          'Фокус с воздушным шариком',
+          'Фокус с монеткой и стаканом',
+          'Фокус с монеткой №2',
+          'Фокус с монеткой, стаканом и салфеткой',
+          'Фокус с карандашом №1',
+          'Фокус с салфетками и волшебной палочкой',
+          'Фокус с разноцветными предметами',
+          'Фокус со стаканами и предсказанием №1',
+          'Фокус со стаканами и предсказанием №2',
+          'Фокус с использованием рук №1',
+          'Фокус с использованием рук №2',
+          'Фокус со стаканом с жидкостью',
+          'Фокус с напальчником',
+          'Фокус с использованием пальцев №1',
+          'Фокус с использованием пальцев №2',
+          'Фокус с использованием пальцев №3',
+          'Фокус с использованием пальцев №4',
+          'Фокус с использованием пальцев №5',
+          'Фокус с листом бумаги',
+          'Три способа достать купюру из-под бутылки',
+          'Фокус с верёвкой №2',
+          'Фокус с карандашом №2',
+          'Фокус с использованием пальцев №6',
+          'Фокус с монеткой №3',
+          'Фокус с иллюзией левитации',
+          'Фокус с вопросами',
+          'Фокус с числами',
+          'Фокус с кольцом'
+        ]
+      },
+      { id:'kit-10-yellow', name:'10 ВФРМ — Жёлтый', color:'#ffd54f',
+        cover:'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1200&auto=format&fit=crop',
+        lessons:[
+          'Фокус с разделителем верёвки','Фокус с разноцветными платками','Фокус с баночкой с кубиками','Фокус с купюрой со скрепками','Фокус с карточкой клоуна','Фокус с резинкой №1','Фокус с резинками №1','Фокус с калькулятором','Фокус с резинкой №2','Фокус с резинками №2'
+        ]
+      },
+      { id:'kit-10-green', name:'10 ВФРМ — Зелёный', color:'#66e48b',
+        cover:'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1200&auto=format&fit=crop',
+        lessons:[
+          'Фокус со стаканами и шариками','Фокус с картой с леской и спичкой','Фокус с печеньем','Фокус с волшебной тростью','Фокус с карточкой сердечка','Фокус с резинкой №1','Фокус с резинками №1','Фокус с резинками №2','Фокус с резинкой №2','Фокус с использованием рук','Фокус с калькулятором'
+        ]
+      },
+      { id:'kit-10-red', name:'10 ВФРМ — Красный', color:'#ff6e6e',
+        cover:'https://images.unsplash.com/photo-1533560904424-aaee2ab75272?q=80&w=1200&auto=format&fit=crop',
+        lessons:[
+          'Фокус с числовыми картами','Фокус с кольцом и цепочкой','Фокус с кошельком с картами','Фокус с баночкой с кубиком','Фокус с поролоновыми шариками и кубиком №1','Фокус с поролоновыми шариками №1','Фокус с поролоновыми шариками №2','Фокус с поролоновыми шариками №3','Фокус с поролоновыми шариками и кубиком №2','Фокус с выбором предмета','Фокус с резинками','Фокус с резинками и прищепкой','Фокус с кольцом и монеткой','Фокус с резинками'
+        ]
+      },
+      { id:'kit-10-blue', name:'10 ВФРМ — Синий', color:'#6db6ff',
+        cover:'https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?q=80&w=1200&auto=format&fit=crop',
+        lessons:[
+          'Фокус с башенкой с шариком','Фокус с платком и напальчником','Фокус с двойными картами','Фокус с карточкой “Дай пять”','Фокус с колодой в футляре','Фокус с купюрой и бумажкой №1','Фокус с купюрой и бумажкой №2','Фокус с резинкой №1','Фокус с использованием рук','Фокус с резинкой №2','Фокус с резинкой №3'
+        ]
+      }
+    ];
+
+    // Helpers
+    const el = sel=>document.querySelector(sel);
+    const views = { sets: el('#view-sets'), lessons: el('#view-lessons'), detail: el('#view-detail') };
+    const setsGrid = el('#setsGrid');
+    const lessonsGrid = el('#lessonsGrid');
+    const lessonsTitle = el('#lessonsTitle');
+    const btnBack = el('#btnBack');
+    let navStack = [];
+
+    function show(id){ Object.values(views).forEach(v=>v.classList.add('hidden')); const v=views[id]; v.classList.remove('hidden'); v.classList.add('fade-enter'); requestAnimationFrame(()=>{v.classList.add('fade-enter-active'); setTimeout(()=>{v.classList.remove('fade-enter');v.classList.remove('fade-enter-active');},260)}); const canBack = navStack.length>0; btnBack.hidden=!canBack; if(tg){canBack?tg.BackButton.show():tg.BackButton.hide();} }
+    function navigateTo(id,payload){ const current = Object.entries(views).find(([k,node])=>!node.classList.contains('hidden'))?.[0]; if(current) navStack.push({view:current,payload}); show(id); }
+    function navigateBack(){ const last = navStack.pop(); if(last) show(last.view); else show('sets'); }
+
+    el('#backToSets').onclick = navigateBack; el('#backToLessons').onclick = navigateBack; btnBack.onclick = navigateBack;
+
+    // Render sets
+    function renderSets(){
+      setsGrid.innerHTML='';
+      SETS.forEach(set=>{
+        const card=document.createElement('article'); card.className='card';
+        card.innerHTML=`<div class="media"><img loading="lazy" src="${set.cover}" alt="${set.name}"><span class="chip" style="color:#fff">${set.lessons.length} урок(ов)</span></div>
+          <div class="content"><h3>${set.name}</h3><p>Выберите урок</p></div>`;
+        card.style.setProperty('--ring', set.color);
+        card.addEventListener('click',()=>openSet(set));
+        setsGrid.appendChild(card);
+      })
+    }
+
+    // Render lessons of set
+    function openSet(set){
+      lessonsTitle.textContent=set.name;
+      lessonsGrid.innerHTML='';
+      set.lessons.forEach((name,idx)=>{
+        const id = slugify(name);
+        const item=document.createElement('article'); item.className='card';
+        const previewBg = "data:image/svg+xml;utf8,"+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'><rect width='100%' height='100%' fill='${set.color}'/><text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='24'>Превью позже</text></svg>`);
+        item.innerHTML=`<div class="media"><img loading="lazy" src="${previewBg}" alt="${name}"><span class="chip">Урок</span></div>
+          <div class="content"><h3>${name}</h3><p>Нажмите, чтобы открыть</p></div>`;
+        item.addEventListener('click',()=>openLesson(set,{ id, name, preview: previewBg, tgLink: buildTgLink(id) }));
+        lessonsGrid.appendChild(item);
+      })
+      navigateTo('lessons', {set:set.id});
+    }
+
+    // Lesson detail → open in Telegram
+    const detailSet = el('#detailSet');
+    const detailBanner = el('#detailBanner');
+    const detailTitle = el('#detailTitle');
+    const detailAbout = el('#detailAbout');
+    const watchBtn = el('#watchInTelegram');
+
+    function openLesson(set, lesson){
+      detailSet.textContent = set.name;
+      detailBanner.style.backgroundImage = `url('${lesson.preview}')`;
+      detailTitle.textContent = lesson.name;
+      detailAbout.textContent = 'Откроется в Telegram. Убедитесь, что у вас есть доступ к закрытому каналу/боту.';
+      watchBtn.onclick = ()=>{
+        const url = lesson.tgLink;
+        if (tg && url){ tg.openTelegramLink(url); setTimeout(()=>{ try{tg.close();}catch(e){} }, 300); }
+        else if(url) { window.open(url,'_blank'); }
+      };
+      navigateTo('detail', { set:set.id, lesson:lesson.id });
+    }
+
+    // Utilities
+    function slugify(s){ return s.toLowerCase().replace(/[^а-яa-z0-9]+/gi,'-').replace(/^-+|-+$/g,''); }
+    // By default we build a bot deeplink; replace YOUR_BOT with реальным @username бота или используйте ссылку на сообщение канала
+    function buildTgLink(lessonId){
+      // Вариант через deep-linking: бот получает payload через start и отправляет видео пользователю в ЛС.
+      // УКАЖИТЕ username бота ниже (пример: MagicLessonsBot)
+      const BOT_USERNAME = 'PpsyAssist_bot'; // ← замените на ваш @username при необходимости
+      return `https://t.me/${BOT_USERNAME}?start=${encodeURIComponent(lessonId)}`;
+      // Альтернатива: tg://resolve (некоторым клиентам нравится нативный протокол)
+      // return `tg://resolve?domain=${BOT_USERNAME}&start=${encodeURIComponent(lessonId)}`;
+      // Альтернатива для прямой ссылки на пост канала (если пользователь состоит в канале):
+      // return `https://t.me/c/<channel_id>/<msg_id>`;
+    }
+
+    // Start
+    function spawnSparkles(){
+      const host=document.getElementById('sparkles');
+      for(let i=0;i<30;i++){ const s=document.createElement('i'); s.style.left=Math.random()*100+'vw'; s.style.bottom=(-10-Math.random()*100)+'px'; s.style.animationDuration=(10+Math.random()*10)+'s'; host.appendChild(s); }
+      setInterval(()=>{ const s=document.createElement('i'); s.style.left=Math.random()*100+'vw'; s.style.bottom='-12px'; s.style.animationDuration=(9+Math.random()*11)+'s'; host.appendChild(s); const list=host.querySelectorAll('i'); if(list.length>120){ for(let k=0;k<20;k++) host.removeChild(list[k]); } },600);
+    }
+
+    renderSets(); spawnSparkles(); show('sets');
+
+    // Self-tests (console)
+    setTimeout(()=>{
+      const ok=(name,cond)=>console[cond?'log':'error'](`[TEST] ${name}: ${cond?'OK':'FAIL'}`);
+      ok('SETS ≥ 5', SETS.length>=5);
+      ok('First set has lessons', Array.isArray(SETS[0].lessons) && SETS[0].lessons.length>0);
+      ok('setsGrid rendered', setsGrid.children.length===SETS.length);
+      // open first set → then one lesson → back
+      const first=SETS[0]; openSet(first); ok('lessons view visible', !views.lessons.classList.contains('hidden'));
+      const firstLesson={ id:slugify(first.lessons[0]), name:first.lessons[0], preview:'', tgLink:buildTgLink(slugify(first.lessons[0]))};
+      openLesson(first, firstLesson); ok('detail view visible', !views.detail.classList.contains('hidden'));
+      navigateBack(); ok('back to lessons', !views.lessons.classList.contains('hidden'));
+    },0);
+  </script>
+</body>
+</html>
