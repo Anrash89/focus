@@ -18,7 +18,6 @@
       radial-gradient(900px 600px at -20% 110%, rgba(25,199,255,.18), transparent 55%),
       linear-gradient(180deg,var(--bg1),var(--bg2));overflow-x:hidden}
 
-    /* Magic sparkles */
     .sparkles{position:fixed;inset:0;pointer-events:none;z-index:0}
     .sparkles i{position:absolute;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,255,255,.2));
       filter:drop-shadow(0 0 8px #fff);animation:float 14s linear infinite;opacity:.85}
@@ -26,7 +25,7 @@
 
     header{position:sticky;top:0;z-index:5;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
       background:linear-gradient(180deg,rgba(10,10,26,.75),rgba(10,10,26,.25));border-bottom:1px solid #ffffff15}
-    .wrap{max-width:1100px;margin:0 авто;padding:14px 16px}
+    .wrap{max-width:1100px;margin:0 auto;padding:14px 16px}
     .brand{display:flex;align-items:center;gap:12px}
     .logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
       background:conic-gradient(from 200deg,var(--accent),var(--accent2));box-shadow:0 0 22px #8a5cf660, inset 0 0 0 2px #ffffff30}
@@ -41,7 +40,7 @@
     .media{position:relative;aspect-ratio:16/10;overflow:hidden}
     .media img{width:100%;height:100%;object-fit:cover;display:block}
     .chip{position:absolute;left:10px;top:10px;font-size:12px;padding:6px 8px;border-radius:999px;background:rgba(0,0,0,.6);border:1px solid #ffffff22}
-    /* ⬇️ Переносим бейдж "Урок" вниз слева только на экране уроков */
+    /* бейдж «Урок» вниз слева в списке уроков */
     #view-lessons .card .chip { top:auto; bottom:10px; }
     .content{padding:12px 12px 14px}
     .content h3{margin:0 0 6px;font-size:17px}
@@ -56,7 +55,6 @@
     .hidden{display:none!important}
     .view-title{font-size:20px;font-weight:900;margin:10px 0}
 
-    /* Lesson detail */
     .detail{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
     .detail .banner{aspect-ratio:16/9;background:#000 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23bbb" font-family="Arial" font-size="28">Превью появится позже</text></svg>') center/contain no-repeat}
     .detail .body{padding:12px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
@@ -69,6 +67,11 @@
       .detail .body{grid-template-columns:1fr}
     }
     @media (prefers-reduced-motion:reduce){.card:hover{transform:none}.sparkles{display:none}}
+
+    /* debug-панель по запросу ?debug=1 */
+    #debug{position:fixed;left:8px;right:8px;bottom:8px;z-index:9999;
+      background:#000000b0;border:1px solid #ffffff2a;border-radius:12px;padding:8px 10px;font:12px/1.25 system-ui;color:#fff}
+    #debug b{color:#9fe}
   </style>
 </head>
 <body>
@@ -89,13 +92,11 @@
   </header>
 
   <main class="wrap">
-    <!-- View: Sets -->
     <section id="view-sets" aria-label="Выбор набора">
       <div class="view-title">Выберите набор</div>
       <div class="grid" id="setsGrid"></div>
     </section>
 
-    <!-- View: Lessons -->
     <section id="view-lessons" class="hidden" aria-label="Уроки набора">
       <div class="toolbar">
         <div class="controls">
@@ -106,7 +107,6 @@
       <div class="grid" id="lessonsGrid"></div>
     </section>
 
-    <!-- View: Lesson Detail (no web player; open in Telegram) -->
     <section id="view-detail" class="hidden" aria-label="Описание урока">
       <div class="toolbar">
         <div class="controls">
@@ -119,7 +119,7 @@
         <div class="body">
           <div>
             <h3 id="detailTitle" style="margin:0 0 6px">Название урока</h3>
-            <p id="detailAbout" style="margin:0;color:var(--muted);font-size:14px">Описание появится позже.</p>
+            <p id="detailAbout" style="margin:0;color:var(--muted);font-size:14px">Откроется в Telegram. Убедитесь, что у вас есть доступ к закрытому каналу/боту.</p>
           </div>
           <div class="controls">
             <button class="btn accent" id="watchInTelegram">▶️ Смотреть в Telegram</button>
@@ -130,11 +130,10 @@
   </main>
 
   <script>
-    // Telegram WebApp init
     const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tg) { tg.ready(); try{tg.expand();}catch(e){} tg.BackButton.onClick(()=>navigateBack()); }
 
-    // === PREVIEWS: КАРТИНКИ ДЛЯ 19 УРОКОВ ===
+    // превью для 19 уроков
     const PREVIEWS = {
       "Фокус с волшебной палочкой и горшочком": "./assets/lesson/02.jpg",
       "Фокус с волшебной палочкой и сердечком №1": "./assets/lesson/03.jpg",
@@ -157,118 +156,22 @@
       "Фокус с игральным кубиком": "./assets/lesson/20.jpg"
     };
 
-    // Data
+    // наборы
     const SETS = [
-      {
-        id:'kit-75-lfrm',
-        name:'75 ЛФРМ — Большой набор',
-        color:'#b388ff',
-        cover:'./assets/75-cover.jpg',
-        lessons:[
-          'Фокус с волшебной палочкой и горшочком',
-          'Фокус с волшебной палочкой и сердечком №1',
-          'Фокус с волшебной палочкой №1',
-          'Фокус с волшебной палочкой и сердечком №2',
-          'Фокус с волшебной палочкой №2',
-          'Фокус с волшебной палочкой №3',
-          'Фокус с сердечками №1',
-          'Фокус с башенкой с шариком',
-          'Фокус с разделителем верёвки',
-          'Фокус с верёвкой №1',
-          'Фокус с разноцветными платками',
-          'Фокус с платком и напальчником',
-          'Фокус с сердечками №2',
-          'Фокус с сердечками №3',
-          'Фокус с сердечками №4',
-          'Фокус с сердечками №5',
-          'Фокус с числовыми картами',
-          'Фокус с баночкой с кубиками',
-          'Фокус с игральным кубиком',
-          'Фокус с двойными картами',
-          'Фокус с картой со створкой',
-          'Фокус со сложенной купюрой',
-          'Фокус с картой и купюрой',
-          'Фокус с купюрой',
-          'Фокус с купюрой со скрепками',
-          'Фокус со скрепками',
-          'Фокус со стаканами и шариками',
-          'Фокус с кольцом и цепочкой',
-          'Фокус с монеткой №1',
-          'Фокус с резинкой и скрепкой №1',
-          'Фокус с резинкой и скрепкой №2',
-          'Фокус с резинками №1',
-          'Фокус с резинками №2',
-          'Фокус с резинками и купюрой',
-          'Фокус с резинкой и купюрой',
-          'Фокус с резинкой',
-          'Фокус с резинками №3',
-          'Фокус с резинками №4',
-          'Фокус с резинками №5',
-          'Фокус с картой с леской и спичкой',
-          'Фокус с верёвкой и спичечным коробком',
-          'Фокус со спичечным коробком №1',
-          'Три загадки со спичками',
-          'Фокус со спичкой №1',
-          'Фокус со спичкой №2',
-          'Фокус со спичечным коробком №2',
-          'Фокус со спичечным коробком и воздушным шариком',
-          'Фокус с воздушным шариком',
-          'Фокус с монеткой и стаканом',
-          'Фокус с монеткой №2',
-          'Фокус с монеткой, стаканом и салфеткой',
-          'Фокус с карандашом №1',
-          'Фокус с салфетками и волшебной палочкой',
-          'Фокус с разноцветными предметами',
-          'Фокус со стаканами и предсказанием №1',
-          'Фокус со стаканами и предсказанием №2',
-          'Фокус с использованием рук №1',
-          'Фокус с использованием рук №2',
-          'Фокус со стаканом с жидкостью',
-          'Фокус с напальчником',
-          'Фокус с использованием пальцев №1',
-          'Фокус с использованием пальцев №2',
-          'Фокус с использованием пальцев №3',
-          'Фокус с использованием пальцев №4',
-          'Фокус с использованием пальцев №5',
-          'Фокус с листом бумаги',
-          'Три способа достать купюру из-под бутылки',
-          'Фокус с верёвкой №2',
-          'Фокус с карандашом №2',
-          'Фокус с использованием пальцев №6',
-          'Фокус с монеткой №3',
-          'Фокус с иллюзией левитации',
-          'Фокус с вопросами',
-          'Фокус с числами',
-          'Фокус с кольцом'
-        ]
-      },
-      { id:'kit-10-yellow', name:'10 ВФРМ — Жёлтый', color:'#ffd54f',
-        cover:'./assets/10-yellow.jpg',
-        lessons:[
-          'Фокус с разделителем верёвки','Фокус с разноцветными платками','Фокус с баночкой с кубиками','Фокус с купюрой со скрепками','Фокус с карточкой клоуна','Фокус с резинкой №1','Фокус с резинками №1','Фокус с калькулятором','Фокус с резинкой №2','Фокус с резинками №2'
-        ]
-      },
-      { id:'kit-10-green', name:'10 ВФРМ — Зелёный', color:'#66e48b',
-        cover:'./assets/10-green.jpg',
-        lessons:[
-          'Фокус со стаканами и шариками','Фокус с картой с леской и спичкой','Фокус с печеньем','Фокус с волшебной тростью','Фокус с карточкой сердечка','Фокус с резинкой №1','Фокус с резинками №1','Фокус с резинками №2','Фокус с резинкой №2','Фокус с использованием рук','Фокус с калькулятором'
-        ]
-      },
-      { id:'kit-10-red', name:'10 ВФРМ — Красный', color:'#ff6e6e',
-        cover:'./assets/10-red.jpg',
-        lessons:[
-          'Фокус с числовыми картами','Фокус с кольцом и цепочкой','Фокус с кошельком с картами','Фокус с баночкой с кубиком','Фокус с поролоновыми шариками и кубиком №1','Фокус с поролоновыми шариками №1','Фокус с поролоновыми шариками №2','Фокус с поролоновыми шариками №3','Фокус с поролоновыми шариками и кубиком №2','Фокус с выбором предмета','Фокус с резинками','Фокус с резинками и прищепкой','Фокус с кольцом и монеткой','Фокус с резинками'
-        ]
-      },
-      { id:'kit-10-blue', name:'10 ВФРМ — Синий', color:'#6db6ff',
-        cover:'./assets/10-blue.jpg',
-        lessons:[
-          'Фокус с башенкой с шариком','Фокус с платком и напальчником','Фокус с двойными картами','Фокус с карточкой “Дай пять”','Фокус с колодой в футляре','Фокус с купюрой и бумажкой №1','Фокус с купюрой и бумажкой №2','Фокус с резинкой №1','Фокус с использованием рук','Фокус с резинкой №2','Фокус с резинкой №3'
-        ]
-      }
+      { id:'kit-75-lfrm', name:'75 ЛФРМ — Большой набор', color:'#b388ff', cover:'./assets/75-cover.jpg', lessons:[
+        'Фокус с волшебной палочкой и горшочком','Фокус с волшебной палочкой и сердечком №1','Фокус с волшебной палочкой №1','Фокус с волшебной палочкой и сердечком №2','Фокус с волшебной палочкой №2','Фокус с волшебной палочкой №3','Фокус с сердечками №1','Фокус с башенкой с шариком','Фокус с разделителем верёвки','Фокус с верёвкой №1','Фокус с разноцветными платками','Фокус с платком и напальчником','Фокус с сердечками №2','Фокус с сердечками №3','Фокус с сердечками №4','Фокус с сердечками №5','Фокус с числовыми картами','Фокус с баночкой с кубиками','Фокус с игральным кубиком','Фокус с двойными картами','Фокус с картой со створкой','Фокус со сложенной купюрой','Фокус с картой и купюрой','Фокус с купюрой','Фокус с купюрой со скрепками','Фокус со скрепками','Фокус со стаканами и шариками','Фокус с кольцом и цепочкой','Фокус с монеткой №1','Фокус с резинкой и скрепкой №1','Фокус с резинкой и скрепкой №2','Фокус с резинками №1','Фокус с резинками №2','Фокус с резинками и купюрой','Фокус с резинкой и купюрой','Фокус с резинкой','Фокус с резинками №3','Фокус с резинками №4','Фокус с резинками №5','Фокус с картой с леской и спичкой','Фокус с верёвкой и спичечным коробком','Фокус со спичечным коробком №1','Три загадки со спичками','Фокус со спичкой №1','Фокус со спичкой №2','Фокус со спичечным коробком №2','Фокус со спичечным коробком и воздушным шариком','Фокус с воздушным шариком','Фокус с монеткой и стаканом','Фокус с монеткой №2','Фокус с монеткой, стаканом и салфеткой','Фокус с карандашом №1','Фокус с салфетками и волшебной палочкой','Фокус с разноцветными предметами','Фокус со стаканами и предсказанием №1','Фокус со стаканами и предсказанием №2','Фокус с использованием рук №1','Фокус с использованием рук №2','Фокус со стаканом с жидкостью','Фокус с напальчником','Фокус с использованием пальцев №1','Фокус с использованием пальцев №2','Фокус с использованием пальцев №3','Фокус с использованием пальцев №4','Фокус с использованием пальцев №5','Фокус с листом бумаги','Три способа достать купюру из-под бутылки','Фокус с верёвкой №2','Фокус с карандашом №2','Фокус с использованием пальцев №6','Фокус с монеткой №3','Фокус с иллюзией левитации','Фокус с вопросами','Фокус с числами','Фокус с кольцом'
+      ]},
+      { id:'kit-10-yellow', name:'10 ВФРМ — Жёлтый', color:'#ffd54f', cover:'./assets/10-yellow.jpg',
+        lessons:['Фокус с разделителем верёвки','Фокус с разноцветными платками','Фокус с баночкой с кубиками','Фокус с купюрой со скрепками','Фокус с карточкой клоуна','Фокус с резинкой №1','Фокус с резинками №1','Фокус с калькулятором','Фокус с резинкой №2','Фокус с резинками №2']},
+      { id:'kit-10-green', name:'10 ВФРМ — Зелёный', color:'#66e48b', cover:'./assets/10-green.jpg',
+        lessons:['Фокус со стаканами и шариками','Фокус с картой с леской и спичкой','Фокус с печеньем','Фокус с волшебной тростью','Фокус с карточкой сердечка','Фокус с резинкой №1','Фокус с резинками №1','Фокус с резинками №2','Фокус с резинкой №2','Фокус с использованием рук','Фокус с калькулятором']},
+      { id:'kit-10-red', name:'10 ВФРМ — Красный', color:'#ff6e6e', cover:'./assets/10-red.jpg',
+        lessons:['Фокус с числовыми картами','Фокус с кольцом и цепочкой','Фокус с кошельком с картами','Фокус с баночкой с кубиком','Фокус с поролоновыми шариками и кубиком №1','Фокус с поролоновыми шариками №1','Фокус с поролоновыми шариками №2','Фокус с поролоновыми шариками №3','Фокус с поролоновыми шариками и кубиком №2','Фокус с выбором предмета','Фокус с резинками','Фокус с резинками и прищепкой','Фокус с кольцом и монеткой','Фокус с резинками']},
+      { id:'kit-10-blue', name:'10 ВФРМ — Синий', color:'#6db6ff', cover:'./assets/10-blue.jpg',
+        lessons:['Фокус с башенкой с шариком','Фокус с платком и напальчником','Фокус с двойными картами','Фокус с карточкой “Дай пять”','Фокус с колодой в футляре','Фокус с купюрой и бумажкой №1','Фокус с купюрой и бумажкой №2','Фокус с резинкой №1','Фокус с использованием рук','Фокус с резинкой №2','Фокус с резинкой №3']}
     ];
 
-    // Helpers
+    // helpers
     const el = sel=>document.querySelector(sel);
     const views = { sets: el('#view-sets'), lessons: el('#view-lessons'), detail: el('#view-detail') };
     const setsGrid = el('#setsGrid');
@@ -283,39 +186,32 @@
 
     el('#backToSets').onclick = navigateBack; el('#backToLessons').onclick = navigateBack; btnBack.onclick = navigateBack;
 
-    // Render sets
+    // рендер наборов
     function renderSets(){
       setsGrid.innerHTML='';
       SETS.forEach(set=>{
         const card=document.createElement('article'); card.className='card';
         card.innerHTML=`<div class="media"><img loading="lazy" src="${set.cover}" alt="${set.name}"><span class="chip" style="color:#fff">${set.lessons.length} урок(ов)</span></div>
           <div class="content"><h3>${set.name}</h3><p>Выберите урок</p></div>`;
-        card.style.setProperty('--ring', set.color);
         card.addEventListener('click',()=>openSet(set));
         setsGrid.appendChild(card);
       })
     }
 
-    // Render lessons of set
+    // рендер уроков
     function openSet(set){
       lessonsTitle.textContent=set.name;
       lessonsGrid.innerHTML='';
-      set.lessons.forEach((name,idx)=>{
+      set.lessons.forEach((name)=>{
         const id = slugify(name);
         const item=document.createElement('article'); item.className='card';
-
-        // Превью: сначала ищем в словаре, иначе — цветная заглушка
-        let preview = PREVIEWS[name];
-        if (!preview) {
-          preview = "data:image/svg+xml;utf8,"+encodeURIComponent(
-            `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'>
-               <rect width='100%' height='100%' fill='${set.color}'/>
-               <text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle'
-                 fill='white' font-family='Arial' font-size='24'>Превью позже</text>
-             </svg>`
-          );
-        }
-
+        let preview = PREVIEWS[name] || "data:image/svg+xml;utf8,"+encodeURIComponent(
+          `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'>
+             <rect width='100%' height='100%' fill='${set.color}'/>
+             <text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle'
+               fill='white' font-family='Arial' font-size='24'>Превью позже</text>
+           </svg>`
+        );
         item.innerHTML=`<div class="media"><img loading="lazy" src="${preview}" alt="${name}"><span class="chip">Урок</span></div>
           <div class="content"><h3>${name}</h3><p>Нажмите, чтобы открыть</p></div>`;
         item.addEventListener('click',()=>openLesson(set,{ id, name, preview, tgLink: buildTgLink(id) }));
@@ -324,51 +220,56 @@
       navigateTo('lessons', {set:set.id});
     }
 
-    // Lesson detail → open in Telegram
+    // детали урока
     const detailSet = el('#detailSet');
     const detailBanner = el('#detailBanner');
     const detailTitle = el('#detailTitle');
-    const detailAbout = el('#detailAbout');
     const watchBtn = el('#watchInTelegram');
 
     function openLesson(set, lesson){
       detailSet.textContent = set.name;
       detailBanner.style.backgroundImage = `url('${lesson.preview}')`;
       detailTitle.textContent = lesson.name;
-      detailAbout.textContent = 'Откроется в Telegram. Убедитесь, что у вас есть доступ к закрытому каналу/боту.';
 
       watchBtn.onclick = () => {
         const payload = { type: 'watch', lessonId: lesson.id };
+        const BOT_USERNAME = 'PpsyAssist_bot'; // твой бот
 
-        // 1) Нормальный путь: мини-апп открыт через кнопку в боте → шлём данные боту
-        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-          try {
+        let sent = false;
+        try {
+          if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.sendData) {
             tg.sendData(JSON.stringify(payload));
-            setTimeout(() => { try { tg.close(); } catch (e) {} }, 200);
-            return;
-          } catch (e) { /* провалимся в диплинк */ }
+            sent = true;
+          }
+        } catch (e) {
+          console.log('sendData error:', e);
         }
 
-        // 2) Запасной путь: диплинк к боту (если открыто вне Telegram/не из кнопки бота)
-        const url = lesson.tgLink;
-        if (url) {
-          if (tg) tg.openTelegramLink(url);
-          else window.open(url,'_blank');
+        if (sent) {
+          try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+          setTimeout(()=>{ try{ tg.close(); }catch(e){} }, 200);
+        } else {
+          const url = `https://t.me/${BOT_USERNAME}?start=${encodeURIComponent(lesson.id)}`;
+          try {
+            if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
+            else window.open(url,'_blank');
+          } catch(e) {
+            window.open(url,'_blank');
+          }
         }
       };
 
       navigateTo('detail', { set:set.id, lesson:lesson.id });
     }
 
-    // Utilities
+    // utils
     function slugify(s){ return s.toLowerCase().replace(/[^а-яa-z0-9]+/gi,'-').replace(/^-+|-+$/g,''); }
-    // Deep-link к твоему боту
     function buildTgLink(lessonId){
-      const BOT_USERNAME = 'PpsyAssist_bot'; // ← твой верный @username
+      const BOT_USERNAME = 'PpsyAssist_bot';
       return `https://t.me/${BOT_USERNAME}?start=${encodeURIComponent(lessonId)}`;
     }
 
-    // Start
+    // старт
     function spawnSparkles(){
       const host=document.getElementById('sparkles');
       for(let i=0;i<30;i++){ const s=document.createElement('i'); s.style.left=Math.random()*100+'vw'; s.style.bottom=(-10-Math.random()*100)+'px'; s.style.animationDuration=(10+Math.random()*10)+'s'; host.appendChild(s); }
@@ -377,13 +278,26 @@
 
     renderSets(); spawnSparkles(); show('sets');
 
-    // Self-tests (console)
+    // простая отладка: добавить ?debug=1 к URL
+    (function debugPanel(){
+      const params = new URLSearchParams(location.search);
+      if (params.get('debug') !== '1') return;
+      const d = document.createElement('div'); d.id='debug';
+      d.innerHTML = `
+        <div><b>tg detected:</b> ${!!tg}</div>
+        <div><b>initDataUnsafe.user:</b> ${!!(tg && tg.initDataUnsafe && tg.initDataUnsafe.user)}</div>
+        <div><b>platform:</b> ${tg?.platform || 'n/a'}</div>
+        <div><b>version:</b> ${tg?.version || 'n/a'}</div>
+        <div>Откройте страницу через кнопку в боте для sendData.</div>`;
+      document.body.appendChild(d);
+    })();
+
+    // self-tests
     setTimeout(()=>{
       const ok=(name,cond)=>console[cond?'log':'error'](`[TEST] ${name}: ${cond?'OK':'FAIL'}`);
       ok('SETS ≥ 5', SETS.length>=5);
       ok('First set has lessons', Array.isArray(SETS[0].lessons) && SETS[0].lessons.length>0);
       ok('setsGrid rendered', setsGrid.children.length===SETS.length);
-      // open first set → then one lesson → back
       const first=SETS[0]; openSet(first); ok('lessons view visible', !views.lessons.classList.contains('hidden'));
       const firstLesson={ id:slugify(first.lessons[0]), name:first.lessons[0], preview: PREVIEWS[first.lessons[0]] || '', tgLink:buildTgLink(slugify(first.lessons[0]))};
       openLesson(first, firstLesson); ok('detail view visible', !views.detail.classList.contains('hidden'));
