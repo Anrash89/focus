@@ -26,7 +26,7 @@
 
     header{position:sticky;top:0;z-index:5;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
       background:linear-gradient(180deg,rgba(10,10,26,.75),rgba(10,10,26,.25));border-bottom:1px solid #ffffff15}
-    .wrap{max-width:1100px;margin:0 auto;padding:14px 16px}
+    .wrap{max-width:1100px;margin:0 авто;padding:14px 16px}
     .brand{display:flex;align-items:center;gap:12px}
     .logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
       background:conic-gradient(from 200deg,var(--accent),var(--accent2));box-shadow:0 0 22px #8a5cf660, inset 0 0 0 2px #ffffff30}
@@ -336,26 +336,36 @@
       detailBanner.style.backgroundImage = `url('${lesson.preview}')`;
       detailTitle.textContent = lesson.name;
       detailAbout.textContent = 'Откроется в Telegram. Убедитесь, что у вас есть доступ к закрытому каналу/боту.';
-      watchBtn.onclick = ()=>{
+
+      watchBtn.onclick = () => {
+        const payload = { type: 'watch', lessonId: lesson.id };
+
+        // 1) Нормальный путь: мини-апп открыт через кнопку в боте → шлём данные боту
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+          try {
+            tg.sendData(JSON.stringify(payload));
+            setTimeout(() => { try { tg.close(); } catch (e) {} }, 200);
+            return;
+          } catch (e) { /* провалимся в диплинк */ }
+        }
+
+        // 2) Запасной путь: диплинк к боту (если открыто вне Telegram/не из кнопки бота)
         const url = lesson.tgLink;
-        if (tg && url){ tg.openTelegramLink(url); setTimeout(()=>{ try{tg.close();}catch(e){} }, 300); }
-        else if(url) { window.open(url,'_blank'); }
+        if (url) {
+          if (tg) tg.openTelegramLink(url);
+          else window.open(url,'_blank');
+        }
       };
+
       navigateTo('detail', { set:set.id, lesson:lesson.id });
     }
 
     // Utilities
     function slugify(s){ return s.toLowerCase().replace(/[^а-яa-z0-9]+/gi,'-').replace(/^-+|-+$/g,''); }
-    // By default we build a bot deeplink; replace YOUR_BOT with реальным @username бота или используйте ссылку на сообщение канала
+    // Deep-link к твоему боту
     function buildTgLink(lessonId){
-      // Вариант через deep-linking: бот получает payload через start и отправляет видео пользователю в ЛС.
-      // УКАЖИТЕ username бота ниже (пример: MagicLessonsBot)
-      const BOT_USERNAME = 'PpsyAssist_bot'; // ← замените на ваш @username при необходимости
+      const BOT_USERNAME = 'PpsyAssist_bot'; // ← твой верный @username
       return `https://t.me/${BOT_USERNAME}?start=${encodeURIComponent(lessonId)}`;
-      // Альтернатива: tg://resolve (некоторым клиентам нравится нативный протокол)
-      // return `tg://resolve?domain=${BOT_USERNAME}&start=${encodeURIComponent(lessonId)}`;
-      // Альтернатива для прямой ссылки на пост канала (если пользователь состоит в канале):
-      // return `https://t.me/c/<channel_id>/<msg_id>`;
     }
 
     // Start
