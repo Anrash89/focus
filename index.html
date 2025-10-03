@@ -132,6 +132,29 @@
     const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tg) { tg.ready(); try{tg.expand();}catch(e){} tg.BackButton.onClick(()=>navigateBack()); }
 
+    // === PREVIEWS: КАРТИНКИ ДЛЯ 19 УРОКОВ ===
+    const PREVIEWS = {
+      "Фокус с волшебной палочкой и горшочком": "./assets/lesson/02.jpg",
+      "Фокус с волшебной палочкой и сердечком №1": "./assets/lesson/03.jpg",
+      "Фокус с волшебной палочкой №1": "./assets/lesson/04.jpg",
+      "Фокус с волшебной палочкой и сердечком №2": "./assets/lesson/05.jpg",
+      "Фокус с волшебной палочкой №2": "./assets/lesson/06.jpg",
+      "Фокус с волшебной палочкой №3": "./assets/lesson/07.jpg",
+      "Фокус с сердечками №1": "./assets/lesson/08.jpg",
+      "Фокус с башенкой с шариком": "./assets/lesson/09.jpg",
+      "Фокус с разделителем верёвки": "./assets/lesson/10.jpg",
+      "Фокус с верёвкой №1": "./assets/lesson/11.jpg",
+      "Фокус с разноцветными платками": "./assets/lesson/12.jpg",
+      "Фокус с платком и напальчником": "./assets/lesson/13.jpg",
+      "Фокус с сердечками №2": "./assets/lesson/14.jpg",
+      "Фокус с сердечками №3": "./assets/lesson/15.jpg",
+      "Фокус с сердечками №4": "./assets/lesson/16.jpg",
+      "Фокус с сердечками №5": "./assets/lesson/17.jpg",
+      "Фокус с числовыми картами": "./assets/lesson/18.jpg",
+      "Фокус с баночкой с кубиками": "./assets/lesson/19.jpg",
+      "Фокус с игральным кубиком": "./assets/lesson/20.jpg"
+    };
+
     // Data
     const SETS = [
       {
@@ -140,25 +163,25 @@
         color:'#b388ff',
         cover:'./assets/75-cover.jpg',
         lessons:[
-          'Фокус с волшебной палочкой и горшочком': './assets/lesson/02.jpg',
-          'Фокус с волшебной палочкой и сердечком №1': './assets/lesson/03.jpg',
-          'Фокус с волшебной палочкой №1': './assets/lesson/04.jpg',
-          'Фокус с волшебной палочкой и сердечком №2': './assets/lesson/05.jpg',
-          'Фокус с волшебной палочкой №2': './assets/lesson/06.jpg',
-          'Фокус с волшебной палочкой №3': './assets/lesson/07.jpg',
-          'Фокус с сердечками №1': './assets/lesson/08.jpg',
-          'Фокус с башенкой с шариком': './assets/lesson/09.jpg',
-          'Фокус с разделителем верёвки': './assets/lesson/10.jpg',
-          'Фокус с верёвкой №1': './assets/lesson/11.jpg',
-          'Фокус с разноцветными платками': './assets/lesson/12.jpg',
-          'Фокус с платком и напальчником': './assets/lesson/13.jpg',
-          'Фокус с сердечками №2': './assets/lesson/14.jpg',
-          'Фокус с сердечками №3': './assets/lesson/15.jpg',
-          'Фокус с сердечками №4': './assets/lesson/16.jpg',
-          'Фокус с сердечками №5': './assets/lesson/17.jpg',
-          'Фокус с числовыми картами': './assets/lesson/18.jpg',
-          'Фокус с баночкой с кубиками': './assets/lesson/19.jpg',
-          'Фокус с игральным кубиком': './assets/lesson/20.jpg',
+          'Фокус с волшебной палочкой и горшочком',
+          'Фокус с волшебной палочкой и сердечком №1',
+          'Фокус с волшебной палочкой №1',
+          'Фокус с волшебной палочкой и сердечком №2',
+          'Фокус с волшебной палочкой №2',
+          'Фокус с волшебной палочкой №3',
+          'Фокус с сердечками №1',
+          'Фокус с башенкой с шариком',
+          'Фокус с разделителем верёвки',
+          'Фокус с верёвкой №1',
+          'Фокус с разноцветными платками',
+          'Фокус с платком и напальчником',
+          'Фокус с сердечками №2',
+          'Фокус с сердечками №3',
+          'Фокус с сердечками №4',
+          'Фокус с сердечками №5',
+          'Фокус с числовыми картами',
+          'Фокус с баночкой с кубиками',
+          'Фокус с игральным кубиком',
           'Фокус с двойными картами',
           'Фокус с картой со створкой',
           'Фокус со сложенной купюрой',
@@ -278,10 +301,22 @@
       set.lessons.forEach((name,idx)=>{
         const id = slugify(name);
         const item=document.createElement('article'); item.className='card';
-        const previewBg = "data:image/svg+xml;utf8,"+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'><rect width='100%' height='100%' fill='${set.color}'/><text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='24'>Превью позже</text></svg>`);
-        item.innerHTML=`<div class="media"><img loading="lazy" src="${previewBg}" alt="${name}"><span class="chip">Урок</span></div>
+
+        // Превью: сначала ищем в словаре, иначе — цветная заглушка
+        let preview = PREVIEWS[name];
+        if (!preview) {
+          preview = "data:image/svg+xml;utf8,"+encodeURIComponent(
+            `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'>
+               <rect width='100%' height='100%' fill='${set.color}'/>
+               <text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle'
+                 fill='white' font-family='Arial' font-size='24'>Превью позже</text>
+             </svg>`
+          );
+        }
+
+        item.innerHTML=`<div class="media"><img loading="lazy" src="${preview}" alt="${name}"><span class="chip">Урок</span></div>
           <div class="content"><h3>${name}</h3><p>Нажмите, чтобы открыть</p></div>`;
-        item.addEventListener('click',()=>openLesson(set,{ id, name, preview: previewBg, tgLink: buildTgLink(id) }));
+        item.addEventListener('click',()=>openLesson(set,{ id, name, preview, tgLink: buildTgLink(id) }));
         lessonsGrid.appendChild(item);
       })
       navigateTo('lessons', {set:set.id});
@@ -338,13 +373,10 @@
       ok('setsGrid rendered', setsGrid.children.length===SETS.length);
       // open first set → then one lesson → back
       const first=SETS[0]; openSet(first); ok('lessons view visible', !views.lessons.classList.contains('hidden'));
-      const firstLesson={ id:slugify(first.lessons[0]), name:first.lessons[0], preview:'', tgLink:buildTgLink(slugify(first.lessons[0]))};
+      const firstLesson={ id:slugify(first.lessons[0]), name:first.lessons[0], preview: PREVIEWS[first.lessons[0]] || '', tgLink:buildTgLink(slugify(first.lessons[0]))};
       openLesson(first, firstLesson); ok('detail view visible', !views.detail.classList.contains('hidden'));
       navigateBack(); ok('back to lessons', !views.lessons.classList.contains('hidden'));
     },0);
   </script>
 </body>
 </html>
-
-
-
