@@ -40,7 +40,7 @@
     .media{position:relative;aspect-ratio:16/10;overflow:hidden}
     .media img{width:100%;height:100%;object-fit:cover;display:block}
     .chip{position:absolute;left:10px;top:10px;font-size:12px;padding:6px 8px;border-radius:999px;background:rgba(0,0,0,.6);border:1px solid #ffffff22}
-    /* бейдж «Урок» вниз слева на экране уроков */
+    /* бейдж «Урок» внизу слева на экране уроков */
     #view-lessons .card .chip { top:auto; bottom:10px; }
     .content{padding:12px 12px 14px}
     .content h3{margin:0 0 6px;font-size:17px}
@@ -117,7 +117,9 @@
         <div class="body">
           <div>
             <h3 id="detailTitle" style="margin:0 0 6px">Название урока</h3>
-            <p id="detailAbout" style="margin:0;color:var(--muted);font-size:14px">Откроется в Telegram. Убедитесь, что у вас есть доступ к закрытому каналу/боту.</p>
+            <p id="detailAbout" style="margin:0;color:var(--muted);font-size:14px">
+              Откроется в Telegram. Убедитесь, что у вас есть доступ к закрытому каналу/боту.
+            </p>
           </div>
           <div class="controls">
             <button class="btn accent" id="watchInTelegram">▶️ Смотреть в Telegram</button>
@@ -185,18 +187,6 @@
 
     el('#backToSets').onclick = navigateBack; el('#backToLessons').onclick = navigateBack; btnBack.onclick = navigateBack;
 
-    // --- Коды уроков
-    function codeFromName(name){
-      const src = PREVIEWS[name];
-      if (!src) return null;
-      const m = src.match(/\/(\d{2})\.jpg$/);
-      return m ? m[1] : null;
-    }
-    function buildDeepLinkByCode(code){
-      const BOT_USERNAME = 'PpsyAssist_bot';
-      return `https://t.me/${BOT_USERNAME}?start=${code}`;
-    }
-
     // --- Render sets
     function renderSets(){
       setsGrid.innerHTML='';
@@ -248,9 +238,9 @@
       detailTitle.textContent = lesson.name;
 
       watchBtn.onclick = () => {
-        const payload = { type: 'watch', lessonId: lesson.id };
+        const payload = { type: 'watch', lessonId: lesson.id, title: lesson.name };
 
-        // 1) основной путь: sendData (работает, если мини-апп открыто через кнопку бота)
+        // основной путь: sendData → бот получит и сам пришлёт видео
         let sent = false;
         try {
           if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.sendData) {
@@ -259,20 +249,8 @@
           }
         } catch (_) {}
 
-        if (sent) {
-          setTimeout(()=>{ try{ tg.close(); }catch(_){} }, 200);
-          return;
-        }
-
-        // 2) fallback: диплинк с коротким кодом (02..20)
-        const code = codeFromName(lesson.name);
-        if (code) {
-          const url = buildDeepLinkByCode(code);
-          try { if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url,'_blank'); }
-          catch { window.open(url,'_blank'); }
-        } else {
-          alert('Откройте эту страницу через кнопку в боте, чтобы смотреть урок.');
-        }
+        // закрываем мини-апп — бот отправит видео и удалит служебное сообщение
+        setTimeout(()=>{ try{ if (tg) tg.close(); }catch(_){} }, sent ? 120 : 120);
       };
 
       navigateTo('detail', { set:set.id, lesson:lesson.id });
