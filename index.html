@@ -18,7 +18,6 @@
       radial-gradient(900px 600px at -20% 110%, rgba(25,199,255,.18), transparent 55%),
       linear-gradient(180deg,var(--bg1),var(--bg2));overflow-x:hidden}
 
-    /* Magic sparkles */
     .sparkles{position:fixed;inset:0;pointer-events:none;z-index:0}
     .sparkles i{position:absolute;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,255,255,.2));
       filter:drop-shadow(0 0 8px #fff);animation:float 14s linear infinite;opacity:.85}
@@ -41,7 +40,7 @@
     .media{position:relative;aspect-ratio:16/10;overflow:hidden}
     .media img{width:100%;height:100%;object-fit:cover;display:block}
     .chip{position:absolute;left:10px;top:10px;font-size:12px;padding:6px 8px;border-radius:999px;background:rgba(0,0,0,.6);border:1px solid #ffffff22}
-    /* Бейдж «Урок» вниз слева на экране уроков */
+    /* бейдж «Урок» вниз слева на экране уроков */
     #view-lessons .card .chip { top:auto; bottom:10px; }
     .content{padding:12px 12px 14px}
     .content h3{margin:0 0 6px;font-size:17px}
@@ -56,7 +55,6 @@
     .hidden{display:none!important}
     .view-title{font-size:20px;font-weight:900;margin:10px 0}
 
-    /* Lesson detail */
     .detail{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
     .detail .banner{aspect-ratio:16/9;background:#000 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23bbb" font-family="Arial" font-size="28">Превью появится позже</text></svg>') center/contain no-repeat}
     .detail .body{padding:12px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
@@ -134,7 +132,7 @@
     const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tg) { tg.ready(); try{tg.expand();}catch(e){} tg.BackButton.onClick(()=>navigateBack()); }
 
-    // === PREVIEWS: картинки для 19 уроков
+    // === PREVIEWS: картинки для 19 уроков (коды из имён файлов 02..20)
     const PREVIEWS = {
       "Фокус с волшебной палочкой и горшочком": "./assets/lesson/02.jpg",
       "Фокус с волшебной палочкой и сердечком №1": "./assets/lesson/03.jpg",
@@ -187,10 +185,16 @@
 
     el('#backToSets').onclick = navigateBack; el('#backToLessons').onclick = navigateBack; btnBack.onclick = navigateBack;
 
-    // --- base64url utils (для диплинка)
-    function toBase64Url(str){
-      const b64 = btoa(unescape(encodeURIComponent(str)));
-      return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    // --- Коды уроков
+    function codeFromName(name){
+      const src = PREVIEWS[name];
+      if (!src) return null;
+      const m = src.match(/\/(\d{2})\.jpg$/);
+      return m ? m[1] : null;
+    }
+    function buildDeepLinkByCode(code){
+      const BOT_USERNAME = 'PpsyAssist_bot';
+      return `https://t.me/${BOT_USERNAME}?start=${code}`;
     }
 
     // --- Render sets
@@ -226,7 +230,7 @@
 
         item.innerHTML=`<div class="media"><img loading="lazy" src="${preview}" alt="${name}"><span class="chip">Урок</span></div>
           <div class="content"><h3>${name}</h3><p>Нажмите, чтобы открыть</p></div>`;
-        item.addEventListener('click',()=>openLesson(set,{ id, name, preview, tgLink: buildTgLink(id) }));
+        item.addEventListener('click',()=>openLesson(set,{ id, name, preview }));
         lessonsGrid.appendChild(item);
       })
       navigateTo('lessons', {set:set.id});
@@ -245,26 +249,29 @@
 
       watchBtn.onclick = () => {
         const payload = { type: 'watch', lessonId: lesson.id };
-        const BOT_USERNAME = 'PpsyAssist_bot';
 
+        // 1) основной путь: sendData (работает, если мини-апп открыто через кнопку бота)
         let sent = false;
         try {
           if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.sendData) {
             tg.sendData(JSON.stringify(payload));
             sent = true;
           }
-        } catch (e) { /* ignore */ }
+        } catch (_) {}
 
         if (sent) {
-          setTimeout(()=>{ try{ tg.close(); }catch(e){} }, 200);
+          setTimeout(()=>{ try{ tg.close(); }catch(_){} }, 200);
+          return;
+        }
+
+        // 2) fallback: диплинк с коротким кодом (02..20)
+        const code = codeFromName(lesson.name);
+        if (code) {
+          const url = buildDeepLinkByCode(code);
+          try { if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url,'_blank'); }
+          catch { window.open(url,'_blank'); }
         } else {
-          const url = `https://t.me/${BOT_USERNAME}?start=${toBase64Url(lesson.id)}`;
-          try {
-            if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
-            else window.open(url,'_blank');
-          } catch(e) {
-            window.open(url,'_blank');
-          }
+          alert('Откройте эту страницу через кнопку в боте, чтобы смотреть урок.');
         }
       };
 
@@ -273,10 +280,6 @@
 
     // --- Utilities
     function slugify(s){ return s.toLowerCase().replace(/[^а-яa-z0-9]+/gi,'-').replace(/^-+|-+$/g,''); }
-    function buildTgLink(lessonId){
-      const BOT_USERNAME = 'PpsyAssist_bot';
-      return `https://t.me/${BOT_USERNAME}?start=${toBase64Url(lessonId)}`;
-    }
 
     // --- Start
     function spawnSparkles(){
@@ -294,7 +297,7 @@
       ok('First set has lessons', Array.isArray(SETS[0].lessons) && SETS[0].lessons.length>0);
       ok('setsGrid rendered', setsGrid.children.length===SETS.length);
       const first=SETS[0]; openSet(first); ok('lessons view visible', !views.lessons.classList.contains('hidden'));
-      const firstLesson={ id:slugify(first.lessons[0]), name:first.lessons[0], preview: PREVIEWS[first.lessons[0]] || '', tgLink:buildTgLink(slugify(first.lessons[0]))};
+      const firstLesson={ id:slugify(first.lessons[0]), name:first.lessons[0], preview: PREVIEWS[first.lessons[0]] || ''};
       openLesson(first, firstLesson); ok('detail view visible', !views.detail.classList.contains('hidden'));
       navigateBack(); ok('back to lessons', !views.lessons.classList.contains('hidden'));
     },0);
