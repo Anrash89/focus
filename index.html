@@ -220,7 +220,7 @@
 
         item.innerHTML=`<div class="media"><img loading="lazy" src="${preview}" alt="${name}"><span class="chip">Урок</span></div>
           <div class="content"><h3>${name}</h3><p>Нажмите, чтобы открыть</p></div>`;
-        item.addEventListener('click',()=>openLesson(set,{ id, name, preview }));
+        item.addEventListener('click',()=>(set,{ id, name, preview }));
         lessonsGrid.appendChild(item);
       })
       navigateTo('lessons', {set:set.id});
@@ -243,7 +243,7 @@
         // основной путь: sendData → бот получит и сам пришлёт видео
         let sent = false;
         try {
-          if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.sendData) {
+          if (tg && tg.sendData) {
             tg.sendData(JSON.stringify(payload));
             sent = true;
           }
@@ -282,3 +282,4 @@
   </script>
 </body>
 </html>
+
