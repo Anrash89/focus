@@ -6,25 +6,34 @@
   <title>Magic Lessons — Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root {
+    :root{
       --bg1:#0a0a1a;--bg2:#111133;--accent:#8a5cf6;--accent2:#19c7ff;--text:#fffefc;--muted:#c9c5ff;
       --card:rgba(255,255,255,.08);--card2:rgba(255,255,255,.12);--radius:20px;--shadow:0 14px 40px rgba(0,0,0,.45);
-      --kid: 18px/1.45 "Comic Sans MS", "Comic Neue", system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      --kid:18px/1.45 "Comic Sans MS","Comic Neue",system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;font:var(--kid);color:var(--text);background:
-      radial-gradient(1200px 800px at 70% -10%, rgba(137,92,246,.25), transparent 60%),
-      radial-gradient(900px 600px at -20% 110%, rgba(25,199,255,.18), transparent 55%),
-      linear-gradient(180deg,var(--bg1),var(--bg2));overflow-x:hidden}
+    body{
+      margin:0;font:var(--kid);color:var(--text);
+      background:
+        radial-gradient(1200px 800px at 70% -10%, rgba(137,92,246,.25), transparent 60%),
+        radial-gradient(900px 600px at -20% 110%, rgba(25,199,255,.18), transparent 55%),
+        linear-gradient(180deg,var(--bg1),var(--bg2));
+      overflow-x:hidden
+    }
 
     .sparkles{position:fixed;inset:0;pointer-events:none;z-index:0}
-    .sparkles i{position:absolute;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,255,255,.2));
-      filter:drop-shadow(0 0 8px #fff);animation:float 14s linear infinite;opacity:.85}
+    .sparkles i{
+      position:absolute;width:4px;height:4px;border-radius:50%;
+      background:radial-gradient(circle,#fff,rgba(255,255,255,.2));
+      filter:drop-shadow(0 0 8px #fff);animation:float 14s linear infinite;opacity:.85
+    }
     @keyframes float{from{transform:translateY(0)}to{transform:translateY(-120vh)}}
 
-    header{position:sticky;top:0;z-index:5;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-      background:linear-gradient(180deg,rgba(10,10,26,.75),rgba(10,10,26,.25));border-bottom:1px solid #ffffff15}
+    header{
+      position:sticky;top:0;z-index:5;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+      background:linear-gradient(180deg,rgba(10,10,26,.75),rgba(10,10,26,.25));border-bottom:1px solid #ffffff15
+    }
     .wrap{max-width:1100px;margin:0 auto;padding:14px 16px}
     .brand{display:flex;align-items:center;gap:12px}
     .logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
@@ -35,12 +44,12 @@
 
     main{position:relative;z-index:1}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:.2s ease;cursor:pointer;}
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:.2s ease;cursor:pointer}
     .card:hover{transform:translateY(-3px);background:var(--card2)}
     .media{position:relative;aspect-ratio:16/10;overflow:hidden}
     .media img{width:100%;height:100%;object-fit:cover;display:block}
     .chip{position:absolute;left:10px;top:10px;font-size:12px;padding:6px 8px;border-radius:999px;background:rgba(0,0,0,.6);border:1px solid #ffffff22}
-    #view-lessons .card .chip { top:auto; bottom:10px; }
+    #view-lessons .card .chip{top:auto;bottom:10px}
     .content{padding:12px 12px 14px}
     .content h3{margin:0 0 6px;font-size:17px}
     .content p{margin:0;color:var(--muted);font-size:14px}
@@ -55,7 +64,10 @@
     .view-title{font-size:20px;font-weight:900;margin:10px 0}
 
     .detail{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-    .detail .banner{aspect-ratio:16/9;background:#000 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23bbb" font-family="Arial" font-size="28">Превью появится позже</text></svg>') center/contain no-repeat}
+    .detail .banner{
+      aspect-ratio:16/9;background:#000 center/cover no-repeat;
+      background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="%23000"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23bbb" font-family="Arial" font-size="28">Превью появится позже</text></svg>')
+    }
     .detail .body{padding:12px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
 
     .fade-enter{opacity:0;transform:translateY(6px)}
@@ -129,42 +141,26 @@
     const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tg) { tg.ready(); try{tg.expand();}catch(e){} tg.BackButton.onClick(()=>navigateBack()); }
 
-    const PREVIEWS = {
-      "Урок 1: Фокус с волшебной палочкой и горшочком": "./assets/lesson/02.jpg",
-      "Урок 2: Фокус с волшебной палочкой и сердечком №1": "./assets/lesson/03.jpg",
-      "Урок 3: Фокус с волшебной палочкой №1": "./assets/lesson/04.jpg",
-      "Урок 4: Фокус с волшебной палочкой и сердечком №2": "./assets/lesson/05.jpg",
-      "Урок 5: Фокус с волшебной палочкой №2": "./assets/lesson/06.jpg",
-      "Урок 6: Фокус с волшебной палочкой №3": "./assets/lesson/07.jpg",
-      "Урок 7: Фокус с сердечками №1": "./assets/lesson/08.jpg",
-      "Урок 8: Фокус с башенкой с шариком": "./assets/lesson/09.jpg",
-      "Урок 9: Фокус с разделителем верёвки": "./assets/lesson/10.jpg",
-      "Урок 10: Фокус с верёвкой №1": "./assets/lesson/11.jpg",
-      "Урок 11: Фокус с разноцветными платками": "./assets/lesson/12.jpg",
-      "Урок 12: Фокус с платком и напальчником": "./assets/lesson/13.jpg",
-      "Урок 13: Фокус с сердечками №2": "./assets/lesson/14.jpg",
-      "Урок 14: Фокус с сердечками №3": "./assets/lesson/15.jpg",
-      "Урок 15: Фокус с сердечками №4": "./assets/lesson/16.jpg",
-      "Урок 16: Фокус с сердечками №5": "./assets/lesson/17.jpg",
-      "Урок 17: Фокус с числовыми картами": "./assets/lesson/18.jpg",
-      "Урок 18: Фокус с баночкой с кубиками": "./assets/lesson/19.jpg",
-      "Урок 19: Фокус с игральным кубиком": "./assets/lesson/20.jpg"
-    };
-
+    // ==========================
+    // ДАННЫЕ: наборы и уроки
+    // ==========================
     const SETS = [
-      { id:'kit-75-lfrm', name:'75 ЛФРМ — Большой набор', color:'#b388ff', cover:'./assets/75-cover.jpg', lessons:[
+      { id:'kit-75-lfrm', name:'75 ЛФРМ — Большой набор', color:'#b388ff', cover:'./assets/75-cover.webp', lessons:[
         'Урок 1: Фокус с волшебной палочкой и горшочком','Урок 2: Фокус с волшебной палочкой и сердечком №1','Урок 3: Фокус с волшебной палочкой №1','Урок 4: Фокус с волшебной палочкой и сердечком №2','Урок 5: Фокус с волшебной палочкой №2','Урок 6: Фокус с волшебной палочкой №3','Урок 7: Фокус с сердечками №1','Урок 8: Фокус с башенкой с шариком','Урок 9: Фокус с разделителем верёвки','Урок 10: Фокус с верёвкой №1','Урок 11: Фокус с разноцветными платками','Урок 12: Фокус с платком и напальчником','Урок 13: Фокус с сердечками №2','Урок 14: Фокус с сердечками №3','Урок 15: Фокус с сердечками №4','Урок 16: Фокус с сердечками №5','Урок 17: Фокус с числовыми картами','Урок 18: Фокус с баночкой с кубиками','Урок 19: Фокус с игральным кубиком','Урок 20: Фокус с двойными картами','Урок 21: Фокус с картой со створкой','Урок 22: Фокус со сложенной купюрой','Урок 23: Фокус с картой и купюрой','Урок 24: Фокус с купюрой','Урок 25: Фокус с купюрой со скрепками','Урок 26: Фокус со скрепками','Урок 27: Фокус со стаканами и шариками','Урок 28: Фокус с кольцом и цепочкой','Урок 29: Фокус с монеткой №1','Урок 30: Фокус с резинкой и скрепкой №1','Урок 31: Фокус с резинкой и скрепкой №2','Урок 32: Фокус с резинками №1','Урок 33: Фокус с резинками №2','Урок 34: Фокус с резинками и купюрой','Урок 35: Фокус с резинкой и купюрой','Урок 36: Фокус с резинкой','Урок 37: Фокус с резинками №3','Урок 38: Фокус с резинками №4','Урок 39: Фокус с резинками №5','Урок 40: Фокус с картой с леской и спичкой','Урок 41: Фокус с верёвкой и спичечным коробком','Урок 42: Фокус со спичечным коробком №1','Урок 43: Три загадки со спичками','Урок 44: Фокус со спичкой №1','Урок 45: Фокус со спичкой №2','Урок 46: Фокус со спичечным коробком №2','Урок 47: Фокус со спичечным коробком и воздушным шариком','Урок 48: Фокус с воздушным шариком','Урок 49: Фокус с монеткой и стаканом','Урок 50: Фокус с монеткой №2','Урок 51: Фокус с монеткой, стаканом и салфеткой','Урок 52: Фокус с карандашом №1','Урок 53: Фокус с салфетками и волшебной палочкой','Урок 54: Фокус с разноцветными предметами','Урок 55: Фокус со стаканами и предсказанием №1','Урок 56: Фокус со стаканами и предсказанием №2','Урок 57: Фокус с использованием рук №1','Урок 58: Фокус с использованием рук №2','Урок 59: Фокус со стаканом с жидкостью','Урок 60: Фокус с напальчником','Урок 61: Фокус с использованием пальцев №1','Урок 62: Фокус с использованием пальцев №2','Урок 63: Фокус с использованием пальцев №3','Урок 64: Фокус с использованием пальцев №4','Урок 65: Фокус с использованием пальцев №5','Урок 66: Фокус с листом бумаги','Урок 67: Три способа достать купюру из-под бутылки','Урок 68: Фокус с верёвкой №2','Урок 69: Фокус с карандашом №2','Урок 70: Фокус с использованием пальцев №6','Урок 71: Фокус с монеткой №3','Урок 72: Фокус с иллюзией левитации','Урок 73: Фокус с вопросами','Урок 74: Фокус с числами','Урок 75: Фокус с кольцом'
       ]},
-      { id:'kit-10-yellow', name:'10 ВФРМ — Жёлтый', color:'#ffd54f', cover:'./assets/10-yellow.jpg',
+      { id:'kit-10-yellow', name:'10 ВФРМ — Жёлтый', color:'#ffd54f', cover:'./assets/10-yellow.webp',
         lessons:['Урок 9: Фокус с разделителем верёвки','Урок 11: Фокус с разноцветными платками','Урок 18: Фокус с баночкой с кубиками','Урок 25: Фокус с купюрой со скрепками','Урок 76: Фокус с карточкой клоуна','Урок 77: Фокус с резинкой №1','Урок 32: Фокус с резинками №1','Урок 78: Фокус с калькулятором','Урок 79: Фокус с резинкой №2','Урок 33: Фокус с резинками №2']},
-      { id:'kit-10-green', name:'10 ВФРМ — Зелёный', color:'#66e48b', cover:'./assets/10-green.jpg',
+      { id:'kit-10-green', name:'10 ВФРМ — Зелёный', color:'#66e48b', cover:'./assets/10-green.webp',
         lessons:['Урок 27: Фокус со стаканами и шариками','Урок 40: Фокус с картой с леской и спичкой','Урок 80: Фокус с печеньем','Урок 81: Фокус с волшебной тростью','Урок 82: Фокус с карточкой сердечка','Урок 77: Фокус с резинкой №1','Урок 32: Фокус с резинками №1','Урок 33: Фокус с резинками №2','Урок 79: Фокус с резинкой №2','Урок 83: Фокус с использованием рук','Урок 78: Фокус с калькулятором']},
-      { id:'kit-10-red', name:'10 ВФРМ — Красный', color:'#ff6e6e', cover:'./assets/10-red.jpg',
+      { id:'kit-10-red', name:'10 ВФРМ — Красный', color:'#ff6e6e', cover:'./assets/10-red.webp',
         lessons:['Урок 17: Фокус с числовыми картами','Урок 28: Фокус с кольцом и цепочкой','Урок 84: Фокус с кошельком с картами','Урок 85: Фокус с баночкой с кубиком','Урок 86: Фокус с поролоновыми шариками и кубиком №1','Урок 87: Фокус с поролоновыми шариками №1','Урок 88: Фокус с поролоновыми шариками №2','Урок 89: Фокус с поролоновыми шариками №3','Урок 90: Фокус с поролоновыми шариками и кубиком №2','Урок 91: Фокус с выбором предмета','Урок 92: Фокус с резинками','Урок 93: Фокус с резинками и прищепкой','Урок 94: Фокус с кольцом и монеткой','Урок 36: Фокус с резинкой']},
-      { id:'kit-10-blue', name:'10 ВФРМ — Синий', color:'#6db6ff', cover:'./assets/10-blue.jpg',
+      { id:'kit-10-blue', name:'10 ВФРМ — Синий', color:'#6db6ff', cover:'./assets/10-blue.webp',
         lessons:['Урок 8: Фокус с башенкой с шариком','Урок 12: Фокус с платком и напальчником','Урок 20: Фокус с двойными картами','Урок 95: Фокус с карточкой “Дай пять”','Урок 96: Фокус с колодой в футляре','Урок 97: Фокус с купюрой и бумажкой №1','Урок 98: Фокус с купюрой и бумажкой №2','Урок 77: Фокус с резинкой №1','Урок 83: Фокус с использованием рук','Урок 79: Фокус с резинкой №2','Урок 37: Фокус с резинками №3']}
     ];
 
+    // ==========================
+    // Утилиты
+    // ==========================
     const el = sel=>document.querySelector(sel);
     const views = { sets: el('#view-sets'), lessons: el('#view-lessons'), detail: el('#view-detail') };
     const setsGrid = el('#setsGrid');
@@ -177,66 +173,152 @@
     const btnBack = el('#btnBack');
     let navStack = [];
 
-    function show(id){ Object.values(views).forEach(v=>v.classList.add('hidden')); const v=views[id]; v.classList.remove('hidden'); v.classList.add('fade-enter'); requestAnimationFrame(()=>{v.classList.add('fade-enter-active'); setTimeout(()=>{v.classList.remove('fade-enter','fade-enter-active');},260)}); const canBack = navStack.length>0; btnBack.hidden=!canBack; if(tg){canBack?tg.BackButton.show():tg.BackButton.hide();} }
+    function show(id){
+      Object.values(views).forEach(v=>v.classList.add('hidden'));
+      const v=views[id]; v.classList.remove('hidden'); v.classList.add('fade-enter');
+      requestAnimationFrame(()=>{v.classList.add('fade-enter-active'); setTimeout(()=>{v.classList.remove('fade-enter','fade-enter-active');},260)});
+      const canBack = navStack.length>0; btnBack.hidden=!canBack; if(tg){canBack?tg.BackButton.show():tg.BackButton.hide();}
+    }
     function navigateTo(id,payload){ const current = Object.entries(views).find(([k,node])=>!node.classList.contains('hidden'))?.[0]; if(current) navStack.push({view:current,payload}); show(id); }
-    function navigateBack(){ const last = navStack.pop(); if(last) {show(last.view); if(last.payload) { if(last.view === 'lessons') { const s = SETS.find(s=>s.id===last.payload.set); if(s) openSet(s, false); } } } else {show('sets');} }
+    function navigateBack(){
+      const last = navStack.pop();
+      if(last){ show(last.view);
+        if(last.payload && last.view==='lessons'){ const s = SETS.find(s=>s.id===last.payload.set); if(s) openSet(s, false); }
+      } else show('sets');
+    }
     el('#backToSets').onclick = navigateBack; el('#backToLessons').onclick = navigateBack; btnBack.onclick = navigateBack;
 
     function slugify(s){ return s.toLowerCase().replace(/[^а-яa-z0-9]+/gi,'-').replace(/^-+|-+$/g,''); }
 
+    // Парсим номер урока из названия "Урок N: ..."
+    function getLessonNumber(title){
+      const m = title.match(/Урок\s+(\d+)\s*:/i);
+      return m ? parseInt(m[1],10) : null;
+    }
+
+    // Маппинг: номер -> путь ./assets/lesson/XX.webp, где XX = (номер+1) с ведущим нулём
+    function previewPathByLessonNumber(num){
+      if(!num) return null;
+      const code = num + 1; // правило из ТЗ
+      const str = code < 10 ? `0${code}` : String(code);
+      return `./assets/lesson/${str}.webp`;
+    }
+
+    // Загрузка с заглушкой, чтобы карточки не ломались
+    function makeImg(src, alt, onReady){
+      const img = new Image();
+      img.loading = 'lazy';
+      img.alt = alt || '';
+      img.src = src;
+      img.onerror = () => {
+        img.src = `data:image/svg+xml;utf8,${encodeURIComponent(
+          `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'>
+            <defs><linearGradient id='g' x1='0' x2='1'><stop offset='0' stop-color='#4b2faf'/><stop offset='1' stop-color='#222a'/></linearGradient></defs>
+            <rect width='100%' height='100%' fill='url(#g)'/>
+            <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='24'>Превью позже</text>
+          </svg>`
+        )}`;
+        onReady && onReady(img, false);
+      };
+      img.onload = () => onReady && onReady(img, true);
+      return img;
+    }
+
+    // ==========================
+    // Рендер
+    // ==========================
     function renderSets(){
       setsGrid.innerHTML='';
       SETS.forEach(set=>{
         const card=document.createElement('article'); card.className='card';
-        card.innerHTML=`<div class="media"><img loading="lazy" src="${set.cover}" alt="${set.name}"><span class="chip" style="color:#fff">${set.lessons.length} урок(ов)</span></div><div class="content"><h3>${set.name}</h3><p>Выберите урок</p></div>`;
+        card.innerHTML=`
+          <div class="media">
+            <img loading="lazy" src="${set.cover}" alt="${set.name}">
+            <span class="chip" style="color:#fff">${set.lessons.length} урок(ов)</span>
+          </div>
+          <div class="content"><h3>${set.name}</h3><p>Выберите урок</p></div>`;
         card.addEventListener('click',()=>openSet(set));
         setsGrid.appendChild(card);
-      })
+      });
     }
 
-    function openSet(set, navigate = true){
+    function openSet(set, navigate=true){
       lessonsTitle.textContent=set.name;
       lessonsGrid.innerHTML='';
-      set.lessons.forEach((name)=>{
-        const id = slugify(name);
+
+      set.lessons.forEach((title)=>{
+        const num = getLessonNumber(title);
+        const preview = (num && num <= 75) ? previewPathByLessonNumber(num) : null;
+
         const item=document.createElement('article'); item.className='card';
-        let preview = PREVIEWS[name] || `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'><rect width='100%' height='100%' fill='${set.color}'/><text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='24'>Превью позже</text></svg>`)}`;
-        item.innerHTML=`<div class="media"><img loading="lazy" src="${preview}" alt="${name}"><span class="chip">Урок</span></div><div class="content"><h3>${name}</h3><p>Нажмите, чтобы открыть</p></div>`;
-        item.addEventListener('click',()=>openLesson(set,{ id, name, preview }));
+        const mid = document.createElement('div'); mid.className='media';
+        const chip = document.createElement('span'); chip.className='chip'; chip.textContent='Урок';
+
+        mid.appendChild(chip);
+        item.appendChild(mid);
+
+        const cnt = document.createElement('div'); cnt.className='content';
+        cnt.innerHTML = `<h3>${title}</h3><p>Нажмите, чтобы открыть</p>`;
+        item.appendChild(cnt);
+
+        const insert = (imgEl)=> mid.insertBefore(imgEl, chip);
+
+        const img = makeImg(
+          preview || `data:image/svg+xml;utf8,${encodeURIComponent(
+            `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'>
+              <rect width='100%' height='100%' fill='${set.color}'/>
+              <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='24'>Превью позже</text>
+            </svg>`
+          )}`,
+          title,
+          (node)=>{ insert(node); }
+        );
+
+        // Если это путь — браузер сам подгрузит; если заглушка — уже установлена
+        // Вставим сразу, чтобы не мигало
+        insert(img);
+
+        item.addEventListener('click',()=>openLesson(set,{ title, num }));
         lessonsGrid.appendChild(item);
       });
+
       if(navigate) navigateTo('lessons', {set:set.id});
     }
 
     function openLesson(set, lesson){
       detailSet.textContent = set.name;
-      detailBanner.style.backgroundImage = `url('${lesson.preview}')`;
-      detailTitle.textContent = lesson.name;
+      detailTitle.textContent = lesson.title;
+
+      // Баннер — та же логика путей
+      let banner = null;
+      if(lesson.num && lesson.num <= 75){
+        banner = previewPathByLessonNumber(lesson.num);
+      }
+      if(banner){
+        detailBanner.style.backgroundImage = `url('${banner}')`;
+      }else{
+        detailBanner.style.backgroundImage = '';
+      }
+
       watchBtn.onclick = () => {
-        const payload = { type: 'watch', lessonId: lesson.id, title: lesson.name };
-        let sent = false;
-        try {
-          if (tg && tg.sendData) {
-            tg.sendData(JSON.stringify(payload));
-            sent = true;
-          }
-        } catch (_) {}
+        const payload = { type:'watch', lessonNumber: lesson.num || null, title: lesson.title };
+        try { if (tg && tg.sendData) tg.sendData(JSON.stringify(payload)); } catch(_) {}
         setTimeout(()=>{ try{ if (tg) tg.close(); }catch(_){} }, 150);
       };
-      navigateTo('detail', { set:set.id, lesson:lesson.id });
+      navigateTo('detail', { set:set.id, lesson:slugify(lesson.title) });
     }
 
     function spawnSparkles(){
-      const host=document.getElementById('sparkles');
-      if(!host) return;
+      const host=document.getElementById('sparkles'); if(!host) return;
       for(let i=0;i<30;i++){ const s=document.createElement('i'); s.style.left=Math.random()*100+'vw'; s.style.bottom=(-10-Math.random()*100)+'px'; s.style.animationDuration=(10+Math.random()*10)+'s'; host.appendChild(s); }
-      setInterval(()=>{ const s=document.createElement('i'); s.style.left=Math.random()*100+'vw'; s.style.bottom='-12px'; s.style.animationDuration=(9+Math.random()*11)+'s'; host.appendChild(s); const list=host.querySelectorAll('i'); if(list.length>120){ for(let k=0;k<20;k++) host.removeChild(list[k]); } },600);
+      setInterval(()=>{ const s=document.createElement('i'); s.style.left=Math.random()*100+'vw'; s.style.bottom='-12px'; s.style.animationDuration=(9+Math.random()*11)+'s'; host.appendChild(s);
+        const list=host.querySelectorAll('i'); if(list.length>120){ for(let k=0;k<20;k++) host.removeChild(list[k]); } },600);
     }
-    
+
+    // init
     renderSets();
     spawnSparkles();
     show('sets');
-
   </script>
 </body>
 </html>
